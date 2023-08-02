@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/CMakeFiles/bootloader
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/CMakeFiles/bootloader.rule
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/CMakeFiles/bootloader-complete.rule
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/home/lab/smpptebb/Documents/RealCodebases/ESPNOWLogger/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
