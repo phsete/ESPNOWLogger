@@ -8,6 +8,10 @@ jobs:
     - name: version
       run: echo "::set-output name=version::$(cat version)"
       id: version
+    - name: Dump steps context
+      env:
+        STEPS_CONTEXT: ${{ steps.version.outputs.version }}.${{ github.ref }}
+      run: echo "$STEPS_CONTEXT"
     - name: release
       uses: actions/create-release@v1
       id: create_release
