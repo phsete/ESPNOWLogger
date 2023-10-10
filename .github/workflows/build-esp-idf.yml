@@ -16,7 +16,7 @@ jobs:
       options: --user ${{ needs.configure.outputs.uid_gid }}
     steps:
     - name: Set owner of working dir recursively (Linux)
-      run: sudo chown -R $(whoami) .
+      run: chown -R $(whoami) .
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
