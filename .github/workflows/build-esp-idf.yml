@@ -3,9 +3,6 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: self-hosted
-    container:
-      image: ubuntu-latest
-      options: --user root
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
