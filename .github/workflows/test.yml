@@ -25,7 +25,7 @@ jobs:
       with:
         draft: false
         prerelease: false
-        release_name: ${{ env.TAG }}.${{ env.SHA }}
+        release_name: ${{ env.TAG }}-${{ env.SHA }}
         tag_name: ${{ env.TAG }}
         body_path: CHANGELOG.md
       env:
