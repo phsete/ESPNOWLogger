@@ -1,5 +1,8 @@
 name: Build with ESP-IDF and create Release
-on: [workflow_dispatch]
+on:
+  push:
+    tags:
+      - 'v*.*.*'
 jobs:
   build:
     runs-on: self-hosted
@@ -17,17 +20,19 @@ jobs:
         esp_idf_version: v5.1.1
         target: esp32c6
         path: '.'
-    - name: version
-      run: echo "::set-output name=version::$(cat version)"
-      id: version
+    - name: get SHA
+      id: vars
+      run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+    - name: get Tag
+      run: echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - name: release
       uses: actions/create-release@v1
       id: create_release
       with:
         draft: false
         prerelease: false
-        release_name: ${{ steps.version.outputs.version }}
-        tag_name: ${{ github.ref }}
+        release_name: ${{ env.TAG }}-${{ env.SHA }}
+        tag_name: ${{ env.TAG }}
         body_path: CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ github.token }}
