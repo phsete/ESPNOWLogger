@@ -1,8 +1,5 @@
 name: TEST
-on: 
-  push:
-    tags:
-      - 'v*.*.*'
+on: [workflow_dispatch]
 jobs:
   build:
     runs-on: self-hosted
