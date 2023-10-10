@@ -19,7 +19,7 @@ jobs:
       with:
         esp_idf_version: v5.1.1
         target: esp32c6
-        path: '.'
+        path: './sender/'
     - name: get SHA
       id: vars
       run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
