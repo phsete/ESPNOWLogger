@@ -5,7 +5,7 @@ jobs:
     runs-on: self-hosted
     steps:
     - name: Clear repository
-      run: sudo rm -fr $GITHUB_WORKSPACE && mkdir $GITHUB_WORKSPACE
+      run: rm -fr $GITHUB_WORKSPACE && mkdir $GITHUB_WORKSPACE
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
