@@ -4,8 +4,9 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-    - name: Clear repository
-      run: rm -fr $GITHUB_WORKSPACE && mkdir $GITHUB_WORKSPACE
+    - name: Set owner of working dir recursively (Linux)
+      if: ${{ inputs.build_platform == 'linux' }}
+      run: sudo chown -R $(whoami) .
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
