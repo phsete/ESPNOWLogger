@@ -4,6 +4,8 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
+    - name: Change Owner of Container Working Directory
+      run: sudo chown -R 1001:1001 .
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
