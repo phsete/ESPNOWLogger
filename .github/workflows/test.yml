@@ -8,6 +8,10 @@ jobs:
     runs-on: self-hosted
     permissions: write-all
     steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     - name: get SHA
       id: vars
       run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
