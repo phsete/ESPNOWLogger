@@ -33,3 +33,7 @@ Below is short explanation of remaining files in the project folder.
 ```
 Additionally, the sample project contains Makefile and component.mk files, used for the legacy Make based build system. 
 They are not used or needed when building with CMake and idf.py.
+
+## Configure ESP-IDF
+1. Install ESP-IDF v5.1.1 into ./esp-idf
+2. Install ESP-IDF-Tools into ./esp-idf-tools
