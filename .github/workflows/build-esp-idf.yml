@@ -1,20 +1,11 @@
 name: ESP-IDF Build Action
 on: [push, workflow_dispatch]
 jobs:
-  configure:
-    runs-on: self-hosted
-    outputs:
-      containerUser: ${{ steps.get-user.outputs.containerUser }}
-    
-    steps:
-      - id: get-user
-        run: echo "::set-output name=containerUser::`id -u`:`id -g`"
   build:
     runs-on: self-hosted
-    needs: configure
     container:
       image: mcr.microsoft.com/vscode/devcontainers/base:ubuntu
-      options: --user ${{ needs.configure.outputs.containerUser }}
+      options: --user github
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
