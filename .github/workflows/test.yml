@@ -21,6 +21,6 @@ jobs:
         prerelease: false
         release_name: ${{ env.TAG }}.${{ env.SHA }}
         tag_name: ${{ env.TAG }}
-        body_path: ./CHANGELOG.md
+        body_path: changelog.md
       env:
         GITHUB_TOKEN: ${{ github.token }}
