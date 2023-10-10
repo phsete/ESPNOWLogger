@@ -2,7 +2,7 @@ name: ESP-IDF Build Action
 on: [push, workflow_dispatch]
 jobs:
   configure:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       uid_gid: ${{ steps.get-user.outputs.uid_gid }}
     steps:
