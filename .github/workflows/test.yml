@@ -1,25 +1,26 @@
 name: TEST
-on: [workflow_dispatch]
+on: 
+  push:
+    tags:
+      - 'v*.*.*'
 jobs:
   build:
     runs-on: self-hosted
     permissions: write-all
     steps:
-    - name: version
-      run: echo "::set-output name=version::$(cat version)"
-      id: version
-    - name: Dump steps context
-      env:
-        STEPS_CONTEXT: ${{ steps.version.outputs.version }}.${{ github.ref }}
-      run: echo "$STEPS_CONTEXT"
+    - name: get SHA
+      id: vars
+      run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+    - name: get Tag
+      run: echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - name: release
       uses: actions/create-release@v1
       id: create_release
       with:
         draft: false
         prerelease: false
-        release_name: ${{ steps.version.outputs.version }}
-        tag_name: ${{ steps.version.outputs.version }}.${{ github.ref }}
+        release_name: ${{ env.TAG }}.${{ env.SHA }}
+        tag_name: ${{ env.TAG }}
         body_path: CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ github.token }}
