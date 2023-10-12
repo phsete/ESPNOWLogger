@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.3
+
+Features:
+
+  - sender now outputs adc value over serial before sending it over ESPNow
+
 ## 0.1.2
 
 Features:

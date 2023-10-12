@@ -174,5 +174,6 @@ void app_main()
     }
     printf("READY\n");
 
+    printf("ADC_VALUE:%d\n", adc_raw[0][0]);
     send_message(adc_raw[0][0]);
 }
