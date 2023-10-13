@@ -82,6 +82,8 @@ void app_main()
     initESP_NOW();
     // printf("AFTER ESP NOW INIT\n");
 
+    printf("Hello:receiver:%s\n", CONFIG_ESP_LOGGER_VERSION);
+
     while (1) {
         vTaskDelay(10 / portTICK_PERIOD_MS);
     };

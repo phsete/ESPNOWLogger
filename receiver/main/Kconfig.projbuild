@@ -12,6 +12,12 @@ menu "Example Configuration"
             bool "Softap"
     endchoice
 
+    config ESP_LOGGER_VERSION
+        string "Installed  ESP Logger Version"
+        default "not set"
+        help
+            This value gets set by the GitHub Action to compile and release a new version, so it can get checked by the code
+
     config ESPNOW_PMK
         string "ESPNOW primary master key"
         default "pmk1234567890123"

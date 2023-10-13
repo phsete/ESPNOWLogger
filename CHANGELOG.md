@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.4
+
+Features:
+
+  - sender/receiver now output their type and their version number to serial for identification
+
 ## 0.1.3
 
 Features:

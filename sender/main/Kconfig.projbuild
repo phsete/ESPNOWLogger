@@ -53,6 +53,12 @@ menu "Example Configuration"
         default 8 if EXAMPLE_ADC2_CHANNEL_8
         default 9 if EXAMPLE_ADC2_CHANNEL_9
 
+    config ESP_LOGGER_VERSION
+        string "Installed  ESP Logger Version"
+        default "not set"
+        help
+            This value gets set by the GitHub Action to compile and release a new version, so it can get checked by the code
+
     config ESPNOW_PMK
         string "ESPNOW primary master key"
         default "pmk1234567890123"

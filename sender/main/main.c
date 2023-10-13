@@ -167,7 +167,8 @@ void app_main()
     // Start WiFi now since WiFi and ADC are not able to run simultaneously!
     example_wifi_init();
     initESP_NOW();
-    printf("Hello\n");
+
+    printf("Hello:sender:%s\n", CONFIG_ESP_LOGGER_VERSION);
 
     while(!wifi_ready || !espnow_ready) {
         vTaskDelay(10 / portTICK_PERIOD_MS);
