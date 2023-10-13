@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.5
+
+Features:
+
+  - add log output messages to sender
+
 ## 0.1.4
 
 Features:
