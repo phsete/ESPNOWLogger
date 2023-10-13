@@ -113,6 +113,7 @@ void send_message(int value) {
 
 void app_main()
 {
+    printf("LOG:MAIN_ENTRY\n");
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -161,18 +162,23 @@ void app_main()
     // Update duty to apply the new value
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
 
+    printf("LOG:ADC_READ\n");
     ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[0][0]));
     ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[0][0]);
     
     // Start WiFi now since WiFi and ADC are not able to run simultaneously!
+    printf("LOG:WIFI_INIT\n");
     example_wifi_init();
+    printf("LOG:ESPNOW_INIT\n");
     initESP_NOW();
 
     printf("Hello:sender:%s\n", CONFIG_ESP_LOGGER_VERSION);
 
+    printf("LOG:WAIT_FOR_WIFI_AND_ESPNOW_READY\n");
     while(!wifi_ready || !espnow_ready) {
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
+    printf("LOG:READY\n");
     printf("READY\n");
 
     printf("ADC_VALUE:%d\n", adc_raw[0][0]);
