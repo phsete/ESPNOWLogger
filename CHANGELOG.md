@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.8
+
+Features:
+
+  - change mac address format to XX-XX-XX-XX-XX-XX
+
 ## 0.1.7
 
 Features:

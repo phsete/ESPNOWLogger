@@ -117,7 +117,7 @@ void send_message(int value, char uuid_str[UUID_STR_LEN], char mac_address[MAC_L
 
 void mac_unparse(const uint8_t mac_address[6], char *mac_str)
 {
-    snprintf(mac_str, MAC_LENGTH, "%02X:%02X:%02X:%02X:%02X:%02X", mac_address[0],mac_address[1],mac_address[2],mac_address[3],mac_address[4],mac_address[5]);
+    snprintf(mac_str, MAC_LENGTH, "%02X-%02X-%02X-%02X-%02X-%02X", mac_address[0],mac_address[1],mac_address[2],mac_address[3],mac_address[4],mac_address[5]);
 }
 
 void app_main()
