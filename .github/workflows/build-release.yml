@@ -9,7 +9,7 @@ jobs:
     permissions: write-all
     steps:
     - name: Change Owner of Container Working Directory
-      run: sudo chown -R 1001:1001 .
+      run: sudo chown -R 1002:1003 .
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
