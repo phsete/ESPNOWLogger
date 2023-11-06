@@ -108,7 +108,7 @@ void send_message(int value, char uuid_str[UUID_STR_LEN], char mac_address[MAC_L
     char text[85];
     snprintf(&text, 85, "%d;%s;%s", value, uuid_str, mac_address);
     struct_message x = {a: {text}}; // Should be used when multiple types of data are sent
-    esp_err_t result = esp_now_send(peerAddress, (uint8_t *) &x, sizeof(int));
+    esp_err_t result = esp_now_send(peerAddress, (uint8_t *) &x, sizeof(x));
 
     if (result == ESP_OK) {
         printf("Data sent successfully\n");

@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.10
+
+Bug-Fixes:
+
+  - fix length of sent data to not being of size int but of size of sent data
+
 ## 0.1.9
 
 Bug-Fixes:
