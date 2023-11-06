@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.9
+
+Bug-Fixes:
+
+  - potential fix for sending data
+
 ## 0.1.8
 
 Features:

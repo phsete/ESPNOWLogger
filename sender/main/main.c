@@ -42,6 +42,9 @@
 
 const static char *TAG = "ADC";
 
+typedef struct struct_message {
+    char a[85];
+} struct_message;
 
 static int adc_raw[2][10];
 static int voltage[2][10];
@@ -103,9 +106,9 @@ void initESP_NOW() {
 
 void send_message(int value, char uuid_str[UUID_STR_LEN], char mac_address[MAC_LENGTH]) {
     char text[85];
-    snprintf(&text, 10, "%d;%s;%s", value, uuid_str, mac_address);
-    // struct_message x = {a: {text}}; // Should be used when multiple types of data are sent
-    esp_err_t result = esp_now_send(peerAddress, (uint8_t *) &text, sizeof(int));
+    snprintf(&text, 85, "%d;%s;%s", value, uuid_str, mac_address);
+    struct_message x = {a: {text}}; // Should be used when multiple types of data are sent
+    esp_err_t result = esp_now_send(peerAddress, (uint8_t *) &x, sizeof(int));
 
     if (result == ESP_OK) {
         printf("Data sent successfully\n");
