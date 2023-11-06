@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.12
+
+Features:
+
+  - receiver receives sent data corretly (ADC;UUID;MAC)
+
 ## 0.1.11
 
 Bug-Fixes:

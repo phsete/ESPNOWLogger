@@ -20,19 +20,21 @@ uint8_t broadcastAddress[] = {0xFF, 0xFF,0xFF,0xFF,0xFF,0xFF};
 uint8_t peerAddress[] = {0x40, 0x4C, 0xCA, 0x41, 0x2A, 0xC4};
 esp_now_peer_info_t peerInfo;
 
-typedef struct struct_message {
-    char a[85];
-} struct_message;
-
-struct_message my_data;
+typedef struct MyMessageType {
+    int value;
+    char uuid[37];
+    char mac_address[17];
+};
+struct MyMessageType received_message;
 
 void onReceiveData(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
     uint8_t *mac = recv_info->src_addr;
-    memcpy(&my_data, data, sizeof(my_data));
+    memcpy(&received_message, data, sizeof(received_message));
     // printf("** Data Received **\n\n");
     // printf("Received from MAC: %02x:%02x:%02x:%02x:%02x:%02x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     // printf("Length: %d byte(s)\n", len);
-    printf("Data: %s\n", my_data.a);
+
+    printf("RECV:%d;%s;%s\n", received_message.value, received_message.uuid, received_message.mac_address);
 }
 
 /* WiFi should start before using ESPNOW */
