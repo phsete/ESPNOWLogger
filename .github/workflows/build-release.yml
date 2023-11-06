@@ -13,7 +13,7 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
-        submodules: 'recursive'
+        submodules: 'true'
     - name: get SHA
       id: vars
       run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
