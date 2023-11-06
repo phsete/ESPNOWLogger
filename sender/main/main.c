@@ -20,6 +20,7 @@
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 #include "main.h"
+#include "uuid.h"
 
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
@@ -178,9 +179,16 @@ void app_main()
     while(!wifi_ready || !espnow_ready) {
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
+
+    // Generate UUID for identification of sent data
+    uuid_t uuid;
+    char uuid_str[UUID_STR_LEN];
+    uuid_generate(uuid);
+    uuid_unparse(uuid, uuid_str);
+
     printf("LOG:READY\n");
     printf("READY\n");
 
-    printf("ADC_VALUE:%d\n", adc_raw[0][0]);
+    printf("ADC_VALUE:%d;%s\n", adc_raw[0][0], uuid_str);
     send_message(adc_raw[0][0]);
 }

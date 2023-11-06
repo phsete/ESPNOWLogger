@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.6
+
+Features:
+
+  - add uuid after adc value to identify it clearly
+
 ## 0.1.5
 
 Features:
