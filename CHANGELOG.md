@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.7
+
+Features:
+
+  - add mac address after uuid
+
 ## 0.1.6
 
 Features:

@@ -38,7 +38,10 @@
 
 #define EXAMPLE_ADC_ATTEN           ADC_ATTEN_DB_0
 
+#define MAC_LENGTH 18
+
 const static char *TAG = "ADC";
+
 
 static int adc_raw[2][10];
 static int voltage[2][10];
@@ -98,9 +101,9 @@ void initESP_NOW() {
     // esp_now_register_recv_cb(onReceiveData);
 }
 
-void send_message(int value) {
+void send_message(int value, char uuid_str[UUID_STR_LEN], char mac_address[MAC_LENGTH]) {
     char text[85];
-    snprintf(&text, 10, "%d", value);
+    snprintf(&text, 10, "%d;%s;%s", value, uuid_str, mac_address);
     // struct_message x = {a: {text}}; // Should be used when multiple types of data are sent
     esp_err_t result = esp_now_send(peerAddress, (uint8_t *) &text, sizeof(int));
 
@@ -110,6 +113,11 @@ void send_message(int value) {
     else {
         printf("Error sending the data\n");
     }
+}
+
+void mac_unparse(const uint8_t mac_address[6], char *mac_str)
+{
+    snprintf(mac_str, MAC_LENGTH, "%02X:%02X:%02X:%02X:%02X:%02X", mac_address[0],mac_address[1],mac_address[2],mac_address[3],mac_address[4],mac_address[5]);
 }
 
 void app_main()
@@ -186,9 +194,14 @@ void app_main()
     uuid_generate(uuid);
     uuid_unparse(uuid, uuid_str);
 
+    uint8_t mac_address[6] = {0};
+    esp_read_mac(mac_address, ESP_MAC_WIFI_STA);
+    char mac_str[MAC_LENGTH];
+    mac_unparse(mac_address, mac_str);
+
     printf("LOG:READY\n");
     printf("READY\n");
 
-    printf("ADC_VALUE:%d;%s\n", adc_raw[0][0], uuid_str);
-    send_message(adc_raw[0][0]);
+    printf("ADC_VALUE:%d;%s;%s\n", adc_raw[0][0], uuid_str, mac_str);
+    send_message(adc_raw[0][0], uuid_str, mac_str);
 }
