@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.1.11
+
+Bug-Fixes:
+
+  - change sent data structure for sender (WIP)
+
 ## 0.1.10
 
 Bug-Fixes:
