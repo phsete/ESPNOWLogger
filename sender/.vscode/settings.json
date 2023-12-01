@@ -1,0 +1,22 @@
+{
+    "idf.adapterTargetName": "esp32c6",
+    "files.associations": {
+        "uuid.h": "c",
+        "chrono": "c",
+        "functional": "c",
+        "optional": "c",
+        "regex": "c",
+        "system_error": "c",
+        "type_traits": "c",
+        "xlocmon": "c",
+        "xtr1common": "c",
+        "xutility": "c"
+    },
+    "idf.portWin": "COM4",
+    "idf.flashType": "JTAG",
+    "idf.openOcdConfigs": [
+        "board/esp32c6-builtin.cfg"
+    ],
+    "idf.toolsPathWin": "C:\\ESP\\esp-idf-tools",
+    "idf.espIdfPathWin": "c:\\ESP\\esp-idf",
+}
