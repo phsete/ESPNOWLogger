@@ -17,7 +17,7 @@
         "tuple": "c",
         "utility": "c"
     },
-    "idf.portWin": "COM6",
+    "idf.portWin": "COM4",
     "idf.flashType": "UART",
     "idf.openOcdConfigs": [
         "board/esp32c6-builtin.cfg"
