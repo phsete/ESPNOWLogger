@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.2.0
+
+Features:
+
+  - send data every 10 seconds
+
 ## 0.1.13
 
 Features:

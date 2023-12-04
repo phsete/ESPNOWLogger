@@ -191,37 +191,46 @@ void app_main()
     // Update duty to apply the new value
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
 
-    printf("LOG:ADC_READ\n");
-    ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[0][0]));
-    ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[0][0]);
-    
-    // Start WiFi now since WiFi and ADC are not able to run simultaneously!
-    printf("LOG:WIFI_INIT\n");
-    example_wifi_init();
-    printf("LOG:ESPNOW_INIT\n");
-    initESP_NOW();
+    while(true) {
+        printf("LOG:ADC_READ\n");
+        ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[0][0]));
+        ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[0][0]);
+        
+        // Start WiFi now since WiFi and ADC are not able to run simultaneously!
+        printf("LOG:WIFI_INIT\n");
+        example_wifi_init();
+        printf("LOG:ESPNOW_INIT\n");
+        initESP_NOW();
 
-    printf("Hello:sender:%s\n", CONFIG_ESP_LOGGER_VERSION);
+        printf("Hello:sender:%s\n", CONFIG_ESP_LOGGER_VERSION);
 
-    printf("LOG:WAIT_FOR_WIFI_AND_ESPNOW_READY\n");
-    while(!wifi_ready || !espnow_ready) {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        printf("LOG:WAIT_FOR_WIFI_AND_ESPNOW_READY\n");
+        while(!wifi_ready || !espnow_ready) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+
+        // Generate UUID for identification of sent data
+        uuid_t uuid;
+        char uuid_str[UUID_STR_LEN];
+        uuid_generate(uuid);
+        uuid_unparse(uuid, uuid_str);
+
+        uint8_t mac_address[6] = {0};
+        esp_read_mac(mac_address, ESP_MAC_WIFI_STA);
+        char mac_str[MAC_LENGTH];
+        mac_unparse(mac_address, mac_str);
+
+        printf("LOG:READY\n");
+        printf("READY\n");
+
+        printf("ADC_VALUE:%d;%s;%s\n", adc_raw[0][0], uuid_str, mac_str);
+        send_message(adc_raw[0][0], uuid_str, mac_str);
+
+        // deinit wifi to properly read ADC next time
+        esp_wifi_stop();
+        esp_wifi_deinit();
+
+        // wait for 10 seconds and send data again
+        vTaskDelay(10 * 1000 / portTICK_PERIOD_MS);
     }
-
-    // Generate UUID for identification of sent data
-    uuid_t uuid;
-    char uuid_str[UUID_STR_LEN];
-    uuid_generate(uuid);
-    uuid_unparse(uuid, uuid_str);
-
-    uint8_t mac_address[6] = {0};
-    esp_read_mac(mac_address, ESP_MAC_WIFI_STA);
-    char mac_str[MAC_LENGTH];
-    mac_unparse(mac_address, mac_str);
-
-    printf("LOG:READY\n");
-    printf("READY\n");
-
-    printf("ADC_VALUE:%d;%s;%s\n", adc_raw[0][0], uuid_str, mac_str);
-    send_message(adc_raw[0][0], uuid_str, mac_str);
 }
