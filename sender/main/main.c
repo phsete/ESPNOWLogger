@@ -108,16 +108,29 @@ void initESP_NOW() {
 }
 
 void send_message(int value, char uuid_str[UUID_STR_LEN], char mac_address[MAC_LENGTH]) {
-    message_to_send.value = value;
-    strncpy(message_to_send.uuid, uuid_str, UUID_STR_LEN);
-    strncpy(message_to_send.mac_address, mac_address, MAC_LENGTH);
+    // Create message
+    char message[sizeof(int) + UUID_STR_LEN + MAC_LENGTH];
+    sprintf(message, "%d;%s;%s", value, uuid_str, mac_address);
 
-    esp_err_t result = esp_now_send(peerAddress, (uint8_t *) &message_to_send, sizeof(message_to_send));
+    // Calculate CRC
+    uint32_t crc = esp_crc32_le(0, (uint8_t *)message, strlen(message));
 
+    // Create message with CRC
+    char message_crc[sizeof(message) + sizeof(crc) * 2 + 1];
+    sprintf(message_crc, "%s%lx", message, crc);
+
+    // Uncomment the following lines for debugging
+    // printf("Message: %s\n", message);
+    // printf("CRC: %lx\n", crc);
+    // printf("Message with CRC: %s\n", message_crc);
+
+    // Send message using esp_now_send
+    esp_err_t result = esp_now_send(peerAddress, (uint8_t *)&message_crc, sizeof(message_crc));
+
+    // Check result
     if (result == ESP_OK) {
         printf("Data sent successfully\n");
-    }
-    else {
+    } else {
         printf("Error sending the data\n");
     }
 }

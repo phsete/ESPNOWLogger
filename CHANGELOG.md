@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## 0.1.13
+
+Features:
+
+  - add crc to sent message
+  - receiver outputs result of crc comparison (RECV:ADC;UUID;MAC;CRC)
+    - CRC = (crc_recv == crc_calc)
+
 ## 0.1.12
 
 Features:

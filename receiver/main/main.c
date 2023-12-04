@@ -15,6 +15,9 @@
 #include "esp_now.h"
 #include "esp_crc.h"
 #include "main.h"
+#include "uuid.h"
+
+#define MAC_LENGTH 18
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF,0xFF,0xFF,0xFF,0xFF};
 uint8_t peerAddress[] = {0x40, 0x4C, 0xCA, 0x41, 0x2A, 0xC4};
@@ -29,12 +32,44 @@ struct MyMessageType received_message;
 
 void onReceiveData(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
     uint8_t *mac = recv_info->src_addr;
-    memcpy(&received_message, data, sizeof(received_message));
-    // printf("** Data Received **\n\n");
-    // printf("Received from MAC: %02x:%02x:%02x:%02x:%02x:%02x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    // printf("Length: %d byte(s)\n", len);
 
-    printf("RECV:%d;%s;%s\n", received_message.value, received_message.uuid, received_message.mac_address);
+    // printf("Received: %s\n", data);
+
+    // Extract CRC from received data
+    char crc_char[9];
+    strncpy(crc_char, (const char*)(data + strlen((const char*)data) - 8), 8);
+    crc_char[8] = '\0';
+    uint32_t received_crc;
+    sscanf(crc_char, "%lx", &received_crc);
+
+    // Extract message without CRC
+    char message[sizeof(int) + UUID_STR_LEN + MAC_LENGTH];
+    strncpy(message, (const char*)data, strlen((const char*)data) - 8);
+
+    // Calculate CRC over the extracted message
+    uint32_t calculated_crc = esp_crc32_le(0, (uint8_t *)message, strlen(message));
+
+    // Compare CRC values
+    bool is_crc_equal = (received_crc == calculated_crc);
+
+    // Extract other fields from the message
+    char value_str[5];
+    char uuid[UUID_STR_LEN + 1];
+    char mac_address[MAC_LENGTH + 1];
+    sscanf(message, "%[^;];%[^;];%s", value_str, uuid, mac_address);
+
+    // Uncomment the following lines for debugging
+    // printf("Message: %s\n", message);
+    // printf("Received CRC: %lx\n", received_crc);
+    // printf("Calculated CRC: %lx\n", calculated_crc);
+    // printf("CRCs equal: %d\n", is_crc_equal);
+
+    // printf("Value: %d\n", atoi(value_str));
+    // printf("UUID: %s\n", uuid);
+    // printf("MAC: %s\n", mac_address);
+
+    // Print Result
+    printf("RECV:%s;%s;%s;%d\n", value_str, uuid, mac_address, is_crc_equal);
 }
 
 /* WiFi should start before using ESPNOW */
