@@ -1,3 +1,6 @@
 [submodule "sender/components/uuid"]
 	path = sender/components/uuid
 	url = git@github.com:phsete/esp32-uuid.git
+[submodule "receiver/components/uuid"]
+	path = receiver/components/uuid
+	url = git@github.com:phsete/esp32-uuid.git
