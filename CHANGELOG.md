@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.2.1
+
+Features:
+
+  - add option for wifi powersave mode
+
 ## 0.2.0
 
 Features:
