@@ -17,6 +17,16 @@
 #include "main.h"
 #include "uuid.h"
 
+#if CONFIG_EXAMPLE_POWER_SAVE_MIN_MODEM
+#define DEFAULT_PS_MODE WIFI_PS_MIN_MODEM
+#elif CONFIG_EXAMPLE_POWER_SAVE_MAX_MODEM
+#define DEFAULT_PS_MODE WIFI_PS_MAX_MODEM
+#elif CONFIG_EXAMPLE_POWER_SAVE_NONE
+#define DEFAULT_PS_MODE WIFI_PS_NONE
+#else
+#define DEFAULT_PS_MODE WIFI_PS_NONE
+#endif /*CONFIG_POWER_SAVE_MODEM*/
+
 #define MAC_LENGTH 18
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF,0xFF,0xFF,0xFF,0xFF};
@@ -83,6 +93,7 @@ static void example_wifi_init(void)
     esp_wifi_set_mode(ESPNOW_WIFI_MODE);
     esp_wifi_start();
     esp_wifi_set_channel(CONFIG_ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE);
+    esp_wifi_set_ps(DEFAULT_PS_MODE);
 }
 
 static void initESP_NOW() {
