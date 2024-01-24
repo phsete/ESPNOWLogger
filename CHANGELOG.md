@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.2.3
+
+Features:
+
+  - fix crc comparison
+
 ## 0.2.2
 
 Features:
