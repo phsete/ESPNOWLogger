@@ -21,6 +21,7 @@
 #include "esp_adc/adc_cali_scheme.h"
 #include "main.h"
 #include "uuid.h"
+#include <esp_sleep.h>
 
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
@@ -40,6 +41,9 @@
 #define DEFAULT_PS_MODE WIFI_PS_NONE
 #endif /*CONFIG_POWER_SAVE_MODEM*/
 
+#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
+#define TIME_TO_SLEEP  10        /* Time ESP32 will go to sleep (in seconds) */
+
 /*---------------------------------------------------------------
         ADC General Macros
 ---------------------------------------------------------------*/
@@ -51,6 +55,8 @@
 #define MAC_LENGTH 18
 
 const static char *TAG = "ADC";
+
+RTC_DATA_ATTR int bootCount = 0;
 
 typedef struct MyMessageType {
     int value;
@@ -75,6 +81,22 @@ bool button_pressed = false;
 // typedef struct struct_message {
 //     char a[85];
 // } struct_message;
+
+void print_wakeup_reason(){
+  esp_sleep_wakeup_cause_t wakeup_reason;
+
+  wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  switch(wakeup_reason)
+  {
+    case ESP_SLEEP_WAKEUP_EXT0 : printf("Wakeup caused by external signal using RTC_IO\n"); break;
+    case ESP_SLEEP_WAKEUP_EXT1 : printf("Wakeup caused by external signal using RTC_CNTL\n"); break;
+    case ESP_SLEEP_WAKEUP_TIMER : printf("Wakeup caused by timer\n"); break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD : printf("Wakeup caused by touchpad\n"); break;
+    case ESP_SLEEP_WAKEUP_ULP : printf("Wakeup caused by ULP program\n"); break;
+    default : printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason); break;
+  }
+}
 
 void onReceiveData(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
     uint8_t *mac = recv_info->src_addr;
@@ -151,9 +173,8 @@ void mac_unparse(const uint8_t mac_address[6], char *mac_str)
     snprintf(mac_str, MAC_LENGTH, "%02X-%02X-%02X-%02X-%02X-%02X", mac_address[0],mac_address[1],mac_address[2],mac_address[3],mac_address[4],mac_address[5]);
 }
 
-void app_main()
+void do_loop()
 {
-    printf("LOG:MAIN_ENTRY\n");
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -202,46 +223,74 @@ void app_main()
     // Update duty to apply the new value
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
 
-    while(true) {
-        printf("LOG:ADC_READ\n");
-        ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[0][0]));
-        ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[0][0]);
-        
-        // Start WiFi now since WiFi and ADC are not able to run simultaneously!
-        printf("LOG:WIFI_INIT\n");
-        example_wifi_init();
-        printf("LOG:ESPNOW_INIT\n");
-        initESP_NOW();
+    printf("LOG:ADC_READ\n");
+    ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[0][0]));
+    ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[0][0]);
+    
+    // Start WiFi now since WiFi and ADC are not able to run simultaneously!
+    printf("LOG:WIFI_INIT\n");
+    example_wifi_init();
+    printf("LOG:ESPNOW_INIT\n");
+    initESP_NOW();
 
-        printf("Hello:sender:%s\n", CONFIG_ESP_LOGGER_VERSION);
+    printf("Hello:sender:%s\n", CONFIG_ESP_LOGGER_VERSION);
 
-        printf("LOG:WAIT_FOR_WIFI_AND_ESPNOW_READY\n");
-        while(!wifi_ready || !espnow_ready) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-
-        // Generate UUID for identification of sent data
-        uuid_t uuid;
-        char uuid_str[UUID_STR_LEN];
-        uuid_generate(uuid);
-        uuid_unparse(uuid, uuid_str);
-
-        uint8_t mac_address[6] = {0};
-        esp_read_mac(mac_address, ESP_MAC_WIFI_STA);
-        char mac_str[MAC_LENGTH];
-        mac_unparse(mac_address, mac_str);
-
-        printf("LOG:READY\n");
-        printf("READY\n");
-
-        printf("ADC_VALUE:%d;%s;%s\n", adc_raw[0][0], uuid_str, mac_str);
-        send_message(adc_raw[0][0], uuid_str, mac_str);
-
-        // deinit wifi to properly read ADC next time
-        esp_wifi_stop();
-        esp_wifi_deinit();
-
-        // wait for 10 seconds and send data again
-        vTaskDelay(10 * 1000 / portTICK_PERIOD_MS);
+    printf("LOG:WAIT_FOR_WIFI_AND_ESPNOW_READY\n");
+    while(!wifi_ready || !espnow_ready) {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
+
+    // Generate UUID for identification of sent data
+    uuid_t uuid;
+    char uuid_str[UUID_STR_LEN];
+    uuid_generate(uuid);
+    uuid_unparse(uuid, uuid_str);
+
+    uint8_t mac_address[6] = {0};
+    esp_read_mac(mac_address, ESP_MAC_WIFI_STA);
+    char mac_str[MAC_LENGTH];
+    mac_unparse(mac_address, mac_str);
+
+    printf("LOG:READY\n");
+    printf("READY\n");
+
+    printf("ADC_VALUE:%d;%s;%s\n", adc_raw[0][0], uuid_str, mac_str);
+    send_message(adc_raw[0][0], uuid_str, mac_str);
+
+    // deinit wifi to properly read ADC next time
+    esp_wifi_stop();
+    esp_wifi_deinit();    
+}
+
+void app_main()
+{
+    printf("LOG:MAIN_ENTRY\n");
+
+    #if !CONFIG_NO_SLEEP
+        //Increment boot number and print it every reboot
+        ++bootCount;
+        printf("LOG:BOOT;%d\n", bootCount);
+
+        //Print the wakeup reason for ESP32
+        print_wakeup_reason();
+
+        /*
+        First we configure the wake up source
+        We set our ESP32 to wake up every 10 seconds
+        */
+        esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+        printf("Setup ESP32 to sleep for every %d Seconds\n", TIME_TO_SLEEP);
+
+        do_loop();
+
+        printf("Going to sleep now\n");
+        fflush(stdout);
+        esp_deep_sleep_start();
+    #else
+        while(true) {
+            do_loop();
+            // wait for 10 seconds and send data again
+            vTaskDelay(10 * 1000 / portTICK_PERIOD_MS);
+        }
+    #endif
 }

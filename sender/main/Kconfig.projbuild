@@ -32,6 +32,26 @@ menu "Example Configuration"
             bool "maximum modem"
     endchoice
 
+    choice SLEEP_MODE
+        prompt "sleep mode"
+        default NO_SLEEP
+        help
+            Select Sleep Mode for ESP32.
+
+        config NO_SLEEP
+            bool "no sleep"
+        config DEEP_SLEEP
+            bool "deep sleep"
+    endchoice
+
+    config SLEEP_TIME
+        int "Sleep Time"
+        default 10
+        range 0 1000
+        depends on DEEP_SLEEP
+        help
+            Time Time to sleep [in Seconds]
+
     choice EXAMPLE_ADC2_CHANNEL
         bool "ADC2 Channel Num"
         default EXAMPLE_ADC2_CHANNEL_7

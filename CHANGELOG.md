@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.2.2
+
+Features:
+
+  - add option for deep sleep
+
 ## 0.2.1
 
 Features:
