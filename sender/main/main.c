@@ -150,7 +150,7 @@ void send_message(int value, char uuid_str[UUID_STR_LEN], char mac_address[MAC_L
 
     // Create message with CRC
     char message_crc[sizeof(message) + sizeof(crc) * 2 + 1];
-    sprintf(message_crc, "%s%lx", message, crc);
+    sprintf(message_crc, "%s%08lx", message, crc);
 
     // Uncomment the following lines for debugging
     // printf("Message: %s\n", message);

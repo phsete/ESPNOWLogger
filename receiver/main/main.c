@@ -42,6 +42,7 @@ struct MyMessageType received_message;
 
 void onReceiveData(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
     uint8_t *mac = recv_info->src_addr;
+    // printf("Data(%d): %s\n", sizeof(data), data);
 
     // printf("Received: %s\n", data);
 
@@ -53,8 +54,10 @@ void onReceiveData(const esp_now_recv_info_t *recv_info, const uint8_t *data, in
     sscanf(crc_char, "%lx", &received_crc);
 
     // Extract message without CRC
-    char message[sizeof(int) + UUID_STR_LEN + MAC_LENGTH];
-    strncpy(message, (const char*)data, strlen((const char*)data) - 8);
+    char message[strlen((const char*)data)];
+    strncpy(message, (const char*)data, strlen((const char*)data));
+    int data_size = strlen((const char*)data);
+    message[data_size-8] = '\0';
 
     // Calculate CRC over the extracted message
     uint32_t calculated_crc = esp_crc32_le(0, (uint8_t *)message, strlen(message));
