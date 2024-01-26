@@ -46,7 +46,7 @@ jobs:
       run: |
         echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" > ./sender/sdkconfig
         echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" > ./sender/sdkconfig
-        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0} > ./sender/sdkconfig', matrix.SLEEP_TIME) }}
+        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" > ./sender/sdkconfig', matrix.SLEEP_TIME) }}
     - name: esp-idf build sender
       uses: espressif/esp-idf-ci-action@v1
       with:
