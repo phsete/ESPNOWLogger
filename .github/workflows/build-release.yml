@@ -6,6 +6,19 @@ on:
 jobs:
   build:
     runs-on: self-hosted
+    strategy:
+      max-parallel: 3
+      matrix:
+        SLEEP_MODE:
+          - NO_SLEEP
+          - DEEP_SLEEP
+        EXAMPLE_POWER_SAVE_MODE:
+          - EXAMPLE_POWER_SAVE_NONE
+          - EXAMPLE_POWER_SAVE_MIN_MODEM
+          - EXAMPLE_POWER_SAVE_MAX_MODEM
+        include:
+          - SLEEP_MODE: CONFIG_DEEP_SLEEP=y
+            SLEEP_TIME: CONFIG_SLEEP_TIME=10
     permissions: write-all
     steps:
     - name: Change Owner of Container Working Directory
@@ -19,10 +32,21 @@ jobs:
       run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
     - name: get Tag
       run: echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+    - name: Copy Default sdkconfig file and remove matrix configurations
+      run: |
+        echo "Matrix: ${{ matrix }}"
+        cp ./sender/sdkconfig.default ./sender/sdkconfig
+        sed -i '/${{ matrix.SLEEP_MODE }}.*/d' ./sender/sdkconfig
+        sed -i '/${{ matrix.SLEEP_TIME }}.*/d' ./sender/sdkconfig
+        sed -i '/${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.*/d' ./sender/sdkconfig
     - name: Set version number in config
       run: |
-        sed -i 's/CONFIG_ESP_LOGGER_VERSION="not set"/CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}"/' ./sender/sdkconfig
+        sed -i 's/CONFIG_ESP_LOGGER_VERSION="not set"/CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"/' ./sender/sdkconfig
         sed -i 's/CONFIG_ESP_LOGGER_VERSION="not set"/CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}"/' ./receiver/sdkconfig
+    - name: Configure sdkconfig for different options
+      run: |
+        echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" > ./sender/sdkconfig
+        echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" > ./sender/sdkconfig
     - name: esp-idf build sender
       uses: espressif/esp-idf-ci-action@v1
       with:
