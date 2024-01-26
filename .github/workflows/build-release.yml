@@ -67,10 +67,10 @@ jobs:
         doNotFailIfNotFound: true
         releaseName: "${{ env.TAG }}-${{ env.SHA }}"
     - name: release
-      if: ${{ ! steps.get_release.id }}
       uses: ncipollo/release-action@v1
       id: create_release
       with:
+        skipIfReleaseExists: true
         name: ${{ env.TAG }}-${{ env.SHA }}
         tag: ${{ env.TAG }}
         allowUpdates: true
