@@ -64,8 +64,8 @@ jobs:
       with:
         name: ${{ env.TAG }}-${{ env.SHA }}
         tag: ${{ env.TAG }}
-        allow-updates: true
-        body_file: CHANGELOG.md
+        allowUpdates: true
+        bodyFile: CHANGELOG.md
         token: ${{ github.token }}
         artifacts: "./sender/build/sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin,./receiver/build/sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin"
     - name: upload linux artifact sender
