@@ -41,7 +41,7 @@ jobs:
     - name: Set version number in config
       run: |
         sed -i 's/CONFIG_ESP_LOGGER_VERSION="not set"/CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"/' ./sender/sdkconfig
-        sed -i 's/CONFIG_ESP_LOGGER_VERSION="not set"/CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}"/' ./receiver/sdkconfig
+        sed -i 's/CONFIG_ESP_LOGGER_VERSION="not set"/CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"/' ./receiver/sdkconfig
     - name: Configure sdkconfig for different options
       run: |
         echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" > ./sender/sdkconfig
@@ -64,7 +64,7 @@ jobs:
       with:
         draft: false
         prerelease: false
-        release_name: ${{ env.TAG }}-${{ env.SHA }}
+        release_name: ${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}
         tag_name: ${{ env.TAG }}
         body_path: CHANGELOG.md
       env:
