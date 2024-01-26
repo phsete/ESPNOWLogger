@@ -58,12 +58,9 @@ jobs:
         esp_idf_version: v5.1.1
         target: esp32c6
         path: './receiver/'
-    - name: rename artifacts
-      run: |
-        cp ./sender/build/ESPNOWLogger.bin ./sender/build/sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
-        cp ./receiver/build/ESPNOWLogger.bin ./receiver/build/receiver-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
     - name: release
       uses: ncipollo/release-action@v1
+      id: create_release
       with:
         name: ${{ env.TAG }}-${{ env.SHA }}
         tag: ${{ env.TAG }}
@@ -71,3 +68,21 @@ jobs:
         body_file: CHANGELOG.md
         token: ${{ github.token }}
         artifacts: "./sender/build/sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin,./receiver/build/sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin"
+    - name: upload linux artifact sender
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sender/build/ESPNOWLogger.bin
+        asset_name: sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
+        asset_content_type: application/octet-stream
+    - name: upload linux artifact receiver
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./receiver/build/ESPNOWLogger.bin
+        asset_name: receiver-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
+        asset_content_type: application/octet-stream
