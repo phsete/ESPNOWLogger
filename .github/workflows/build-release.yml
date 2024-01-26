@@ -34,7 +34,6 @@ jobs:
       run: echo "TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - name: Copy Default sdkconfig file and remove matrix configurations
       run: |
-        echo "Matrix: ${{ matrix }}"
         cp ./sender/sdkconfig.default ./sender/sdkconfig
         sed -i '/${{ matrix.SLEEP_MODE }}.*/d' ./sender/sdkconfig
         sed -i '/${{ matrix.SLEEP_TIME }}.*/d' ./sender/sdkconfig
