@@ -17,8 +17,8 @@ jobs:
           - EXAMPLE_POWER_SAVE_MIN_MODEM
           - EXAMPLE_POWER_SAVE_MAX_MODEM
         include:
-          - SLEEP_MODE: CONFIG_DEEP_SLEEP=y
-            SLEEP_TIME: CONFIG_SLEEP_TIME=10
+          - SLEEP_MODE: DEEP_SLEEP
+            SLEEP_TIME: 10
     permissions: write-all
     steps:
     - name: Change Owner of Container Working Directory
@@ -46,6 +46,7 @@ jobs:
       run: |
         echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" > ./sender/sdkconfig
         echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" > ./sender/sdkconfig
+        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0} > ./sender/sdkconfig', matrix.SLEEP_TIME) }}
     - name: esp-idf build sender
       uses: espressif/esp-idf-ci-action@v1
       with:
@@ -81,7 +82,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
-        upload_url: ${{ steps.get_release.id && steps.get_release.upload_url || steps.create_release.outputs.upload_url }}
+        upload_url: ${{ steps.get_release.outputs.id && steps.get_release.outputs.upload_url || steps.create_release.outputs.upload_url }}
         asset_path: ./sender/build/ESPNOWLogger.bin
         asset_name: sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
         asset_content_type: application/octet-stream
@@ -90,7 +91,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
-        upload_url: ${{ steps.get_release.id && steps.get_release.upload_url || steps.create_release.outputs.upload_url }}
+        upload_url: ${{ steps.get_release.outputs.id && steps.get_release.outputs.upload_url || steps.create_release.outputs.upload_url }}
         asset_path: ./receiver/build/ESPNOWLogger.bin
         asset_name: receiver-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
         asset_content_type: application/octet-stream
