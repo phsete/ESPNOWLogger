@@ -58,7 +58,15 @@ jobs:
         esp_idf_version: v5.1.1
         target: esp32c6
         path: './receiver/'
+    - name: find release if exists
+      uses: cardinalby/git-get-release-action@v1
+      id: get_release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        release_name: "${{ env.TAG }}-${{ env.SHA }}"
     - name: release
+      if: ${{ ! steps.get_release.upload_url }}
       uses: ncipollo/release-action@v1
       id: create_release
       with:
@@ -72,7 +80,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ steps.get_release.upload_url || steps.create_release.outputs.upload_url }}
         asset_path: ./sender/build/ESPNOWLogger.bin
         asset_name: sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
         asset_content_type: application/octet-stream
@@ -81,7 +89,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ steps.get_release.upload_url || steps.create_release.outputs.upload_url }}
         asset_path: ./receiver/build/ESPNOWLogger.bin
         asset_name: receiver-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
         asset_content_type: application/octet-stream
