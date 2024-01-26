@@ -60,8 +60,8 @@ jobs:
         path: './receiver/'
     - name: rename artifacts
       run: |
-        mv ./sender/build/ESPNOWLogger.bin ./sender/build/sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
-        mv ./receiver/build/ESPNOWLogger.bin ./receiver/build/receiver-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
+        cp ./sender/build/ESPNOWLogger.bin ./sender/build/sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
+        cp ./receiver/build/ESPNOWLogger.bin ./receiver/build/receiver-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
     - name: release
       uses: ncipollo/release-action@v1
       with:
