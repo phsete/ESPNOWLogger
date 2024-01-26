@@ -38,6 +38,10 @@ jobs:
         sed -i '/${{ matrix.SLEEP_MODE }}.*/d' ./sender/sdkconfig
         sed -i '/${{ matrix.SLEEP_TIME }}.*/d' ./sender/sdkconfig
         sed -i '/${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.*/d' ./sender/sdkconfig
+        cp ./receiver/sdkconfig.default ./receiver/sdkconfig
+        sed -i '/${{ matrix.SLEEP_MODE }}.*/d' ./receiver/sdkconfig
+        sed -i '/${{ matrix.SLEEP_TIME }}.*/d' ./receiver/sdkconfig
+        sed -i '/${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.*/d' ./receiver/sdkconfig
     - name: Set version number in config
       run: |
         sed -i 's/CONFIG_ESP_LOGGER_VERSION="not set"/CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"/' ./sender/sdkconfig
@@ -47,6 +51,9 @@ jobs:
         echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" > ./sender/sdkconfig
         echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" > ./sender/sdkconfig
         ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" > ./sender/sdkconfig', matrix.SLEEP_TIME) }}
+        echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" > ./receiver/sdkconfig
+        echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" > ./receiver/sdkconfig
+        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" > ./receiver/sdkconfig', matrix.SLEEP_TIME) }}
     - name: esp-idf build sender
       uses: espressif/esp-idf-ci-action@v1
       with:

@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.2.4
+
+Features:
+
+  - add options to version output
+
 ## 0.2.3
 
 Features:
