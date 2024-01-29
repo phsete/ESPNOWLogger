@@ -44,14 +44,14 @@ jobs:
         sed -i '/CONFIG_ESP_LOGGER_VERSION="not set"/d' ./receiver/sdkconfig
     - name: Configure sdkconfig for different options
       run: |
-        echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" > ./sender/sdkconfig
-        echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" > ./sender/sdkconfig
-        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" > ./sender/sdkconfig', matrix.SLEEP_TIME) }}
-        echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' > ./sender/sdkconfig
-        echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" > ./receiver/sdkconfig
-        echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" > ./receiver/sdkconfig
-        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" > ./receiver/sdkconfig', matrix.SLEEP_TIME) }}
-        echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' > ./receiver/sdkconfig
+        echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" >> ./sender/sdkconfig
+        echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" >> ./sender/sdkconfig
+        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" >> ./sender/sdkconfig', matrix.SLEEP_TIME) }}
+        echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' >> ./sender/sdkconfig
+        echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" >> ./receiver/sdkconfig
+        echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" >> ./receiver/sdkconfig
+        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" >> ./receiver/sdkconfig', matrix.SLEEP_TIME) }}
+        echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' >> ./receiver/sdkconfig
     - name: find release if exists
       uses: cardinalby/git-get-release-action@v1
       id: get_release
