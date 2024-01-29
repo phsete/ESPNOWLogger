@@ -52,6 +52,18 @@ jobs:
         echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" >> ./receiver/sdkconfig
         ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" >> ./receiver/sdkconfig', matrix.SLEEP_TIME) }}
         echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' >> ./receiver/sdkconfig
+    - name: esp-idf build sender
+      uses: espressif/esp-idf-ci-action@v1
+      with:
+        esp_idf_version: v5.1.1
+        target: esp32c6
+        path: './sender/'
+    - name: esp-idf build receiver
+      uses: espressif/esp-idf-ci-action@v1
+      with:
+        esp_idf_version: v5.1.1
+        target: esp32c6
+        path: './receiver/'
     - name: find release if exists
       uses: cardinalby/git-get-release-action@v1
       id: get_release
@@ -70,27 +82,6 @@ jobs:
         allowUpdates: true
         bodyFile: CHANGELOG.md
         token: ${{ github.token }}
-    - name: upload sender sdkconfig before build
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ steps.get_release.outputs.id && steps.get_release.outputs.upload_url || steps.create_release.outputs.upload_url }}
-        asset_path: ./sender/sdkconfig
-        asset_name: sender-sdkconfig-before-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}
-        asset_content_type: application/octet-stream
-    - name: esp-idf build sender
-      uses: espressif/esp-idf-ci-action@v1
-      with:
-        esp_idf_version: v5.1.1
-        target: esp32c6
-        path: './sender/'
-    - name: esp-idf build receiver
-      uses: espressif/esp-idf-ci-action@v1
-      with:
-        esp_idf_version: v5.1.1
-        target: esp32c6
-        path: './receiver/'
     - name: upload linux artifact sender
       uses: actions/upload-release-asset@v1
       env:
