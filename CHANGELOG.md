@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.2.5
+
+Features:
+
+  - fix not set version for debugging purposes
+
 ## 0.2.4
 
 Features:
