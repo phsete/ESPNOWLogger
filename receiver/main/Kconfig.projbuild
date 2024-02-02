@@ -1,5 +1,11 @@
 menu "Example Configuration"
 
+    config BROKER_URI
+        string "Broker URL"
+        default "ws://mqtt.eclipseprojects.io:80/mqtt"
+        help
+            URL of an mqtt broker which this example connects to.
+
     choice ESPNOW_WIFI_MODE
         prompt "WiFi mode"
         default ESPNOW_WIFI_MODE_STATION

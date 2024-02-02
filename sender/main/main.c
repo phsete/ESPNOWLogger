@@ -31,9 +31,9 @@
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
 #define LEDC_OUTPUT_IO          (5) // Define the output GPIO
 #define LEDC_CHANNEL            LEDC_CHANNEL_0
-#define LEDC_DUTY_RES           LEDC_TIMER_12_BIT // Set duty resolution to 13 bits
-#define LEDC_DUTY               (128) // Set duty to 50%. ((2 ** 13) - 1) * 50% = 4095
-#define LEDC_FREQUENCY          (10000) // Frequency in Hertz. Set frequency at 5 kHz
+#define LEDC_DUTY_RES           LEDC_TIMER_4_BIT // Set duty resolution to 13 bits
+#define LEDC_DUTY               (1) // Set duty to 50%. ((2 ** 13) - 1) * 50% = 4095
+#define LEDC_FREQUENCY          (1000000) // Frequency in Hertz. Set frequency at 5 kHz
 
 #if CONFIG_EXAMPLE_POWER_SAVE_MIN_MODEM
 #define DEFAULT_PS_MODE WIFI_PS_MIN_MODEM
@@ -61,6 +61,9 @@
 
 #define MAC_LENGTH 18
 
+#define SAMPLE_AMOUNT 5
+#define SKIP_AMOUNT 25
+
 const static char *TAG = "ADC";
 
 RTC_DATA_ATTR int bootCount = 0;
@@ -72,10 +75,7 @@ typedef struct MyMessageType {
 };
 struct MyMessageType message_to_send;
 
-static int adc_raw[2][10];
-static int voltage[2][10];
-static bool example_adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_handle_t *out_handle);
-
+static int adc_raw[SAMPLE_AMOUNT];
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF,0xFF,0xFF,0xFF,0xFF};
 uint8_t peerAddress[] = {0x40, 0x4C, 0xCA, 0x41, 0x16, 0xBC};
@@ -285,6 +285,12 @@ init_adc()
     return adc1_handle;
 }
 
+int compare (const void * a, const void * b)
+{
+  return ( *(int*)a - *(int*)b );
+}
+
+
 void do_loop(
 #if CONFIG_ONESHOT
     adc_oneshot_unit_handle_t
@@ -294,9 +300,21 @@ void do_loop(
     adc_handle)
 {
     printf("LOG:ADC_READ\n");
+    int adc_median;
+    int trash;
 #if CONFIG_ONESHOT
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[0][0]));
+    // vTaskDelay(1000 / portTICK_PERIOD_MS);
+    
+    for (int i = 0; i < SKIP_AMOUNT; i += 1) {
+        ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, EXAMPLE_ADC1_CHAN0, &trash));
+        ESP_LOGI(TAG, "TRASHING: ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, trash);
+    }
+    for (int i = 0; i < SAMPLE_AMOUNT; i += 1) {
+        ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[i]));
+        ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[i]);
+    }
+    qsort(adc_raw, SAMPLE_AMOUNT, sizeof(int), compare);
+    adc_median = adc_raw[SAMPLE_AMOUNT/2];
 #elif CONFIG_CONTINUOUS
     esp_err_t ret;
     uint32_t ret_num = 0;
@@ -330,7 +348,7 @@ void do_loop(
         ESP_LOGE("ADC", "read not ok: %s", esp_err_to_name(ret));
     }
 #endif
-    ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[0][0]);
+    ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_median);
     
     // Start WiFi now since WiFi and ADC are not able to run simultaneously!
     printf("LOG:WIFI_INIT\n");
@@ -359,8 +377,8 @@ void do_loop(
     printf("LOG:READY\n");
     printf("READY\n");
 
-    printf("ADC_VALUE:%d;%s;%s\n", adc_raw[0][0], uuid_str, mac_str);
-    send_message(adc_raw[0][0], uuid_str, mac_str);
+    printf("ADC_VALUE:%d;%s;%s\n", adc_median, uuid_str, mac_str);
+    send_message(adc_median, uuid_str, mac_str);
 
     // deinit wifi to properly read ADC next time
     esp_wifi_stop();

@@ -1,0 +1,15 @@
+dependencies:
+  idf:
+    component_hash: null
+    source:
+      type: idf
+    version: 5.1.2
+  protocol_examples_common:
+    component_hash: null
+    source:
+      path: /home/philt/UNI/ESPNOWLogger/esp-idf/examples/common_components/protocol_examples_common
+      type: local
+    version: '*'
+manifest_hash: 3cc21eea237cf1c1b22b37720bfc1fe039586230415b19cf5639f01e8ed7bbc6
+target: esp32c6
+version: 1.0.0
