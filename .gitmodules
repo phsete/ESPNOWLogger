@@ -4,3 +4,9 @@
 [submodule "receiver/components/uuid"]
 	path = receiver/components/uuid
 	url = git@github.com:phsete/esp32-uuid.git
+[submodule "receiver_matter/components/uuid"]
+	path = receiver_matter/components/uuid
+	url = git@github.com:phsete/esp32-uuid.git
+[submodule "receiver_matter_chip/components/uuid"]
+	path = receiver_matter_chip/components/uuid
+	url = git@github.com:phsete/esp32-uuid.git
