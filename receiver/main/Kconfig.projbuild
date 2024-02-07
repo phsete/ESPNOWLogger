@@ -18,6 +18,18 @@ menu "Example Configuration"
             bool "Softap"
     endchoice
 
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "not set"
+        help
+            WiFi SSID to connect to
+
+    config WIFI_PASSWORD
+        string "WiFi Password"
+        default "not set"
+        help
+            WiFi Password to connect to specified network
+
     config ESP_LOGGER_VERSION
         string "Installed  ESP Logger Version"
         default "not set"

@@ -216,15 +216,15 @@ void wifi_connection()
         .password= "", /*we are sending a const char of ssid and password which we will strcpy in following line so leaving it blank*/ 
     }//also this part is used if you donot want to use Kconfig.projbuild
     };
-    strcpy((char*)wifi_configuration.sta.ssid, CONFIG_EXAMPLE_WIFI_SSID); // copy chars from hardcoded configs to struct
-    strcpy((char*)wifi_configuration.sta.password,CONFIG_EXAMPLE_WIFI_PASSWORD);
+    strcpy((char*)wifi_configuration.sta.ssid, CONFIG_WIFI_SSID); // copy chars from hardcoded configs to struct
+    strcpy((char*)wifi_configuration.sta.password,CONFIG_WIFI_PASSWORD);
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);//setting up configs when event ESP_IF_WIFI_STA
     esp_wifi_set_channel(CONFIG_ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE);
     esp_wifi_set_ps(DEFAULT_PS_MODE);
     esp_wifi_set_mode(WIFI_MODE_STA);//station mode selected
     esp_wifi_start();//start connection with configurations provided in funtion
     esp_wifi_connect(); //connect with saved ssid and pass
-    printf( "wifi_init_softap finished. SSID:%s  password:%s", CONFIG_EXAMPLE_WIFI_SSID,CONFIG_EXAMPLE_WIFI_PASSWORD);
+    printf( "wifi_init_softap finished. SSID:%s", CONFIG_WIFI_SSID);
 }
 
 static void initESP_NOW() {
