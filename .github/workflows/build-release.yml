@@ -54,7 +54,7 @@ jobs:
         target: esp32c6
         path: './sender/'
     - name: esp-idf build receiver
-      if: ${{ matrix.SLEEP_MODE == "NO_SLEEP" && matrix.EXAMPLE_POWER_SAVE_MODE == "EXAMPLE_POWER_SAVE_NONE" }}
+      if: ${{ matrix.SLEEP_MODE == matrix.SLEEP_MODE.NO_SLEEP && matrix.EXAMPLE_POWER_SAVE_MODE == matrix.EXAMPLE_POWER_SAVE_MODE.EXAMPLE_POWER_SAVE_NONE }}
       uses: espressif/esp-idf-ci-action@v1
       with:
         esp_idf_version: v5.1.1
@@ -88,7 +88,7 @@ jobs:
         asset_name: sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
         asset_content_type: application/octet-stream
     - name: upload linux artifact receiver
-      if: ${{ matrix.SLEEP_MODE == "NO_SLEEP" && matrix.EXAMPLE_POWER_SAVE_MODE == "EXAMPLE_POWER_SAVE_NONE" }}
+      if: ${{ matrix.SLEEP_MODE == matrix.SLEEP_MODE.NO_SLEEP && matrix.EXAMPLE_POWER_SAVE_MODE == matrix.EXAMPLE_POWER_SAVE_MODE.EXAMPLE_POWER_SAVE_NONE }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -98,7 +98,7 @@ jobs:
         asset_name: receiver.bin
         asset_content_type: application/octet-stream
     - name: upload receiver sdkconfig
-      if: ${{ matrix.SLEEP_MODE == "NO_SLEEP" && matrix.EXAMPLE_POWER_SAVE_MODE == "EXAMPLE_POWER_SAVE_NONE" }}
+      if: ${{ matrix.SLEEP_MODE == matrix.SLEEP_MODE.NO_SLEEP && matrix.EXAMPLE_POWER_SAVE_MODE == matrix.EXAMPLE_POWER_SAVE_MODE.EXAMPLE_POWER_SAVE_NONE }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
