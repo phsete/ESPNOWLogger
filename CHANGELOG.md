@@ -1,5 +1,12 @@
 # CHANGELOG.md
 
+## 0.2.6
+
+Features:
+
+  - add mqtt to receiver
+  - various small improvements
+
 ## 0.2.5
 
 Features:

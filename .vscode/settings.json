@@ -4,5 +4,6 @@
     "idf.adapterTargetName": "esp32c6",
     "idf.openOcdConfigs": [
         "board/esp32c6-builtin.cfg"
-    ]
+    ],
+    "idf.port": "/dev/ttyUSB0"
 }

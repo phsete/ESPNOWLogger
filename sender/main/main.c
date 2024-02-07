@@ -16,7 +16,11 @@
 #include "esp_crc.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
+#if CONFIG_ONESHOT
 #include "esp_adc/adc_oneshot.h"
+#elif CONFIG_CONTINUOUS
+#include "esp_adc/adc_continuous.h"
+#endif
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 #include "main.h"
@@ -27,9 +31,9 @@
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
 #define LEDC_OUTPUT_IO          (5) // Define the output GPIO
 #define LEDC_CHANNEL            LEDC_CHANNEL_0
-#define LEDC_DUTY_RES           LEDC_TIMER_12_BIT // Set duty resolution to 13 bits
-#define LEDC_DUTY               (128) // Set duty to 50%. ((2 ** 13) - 1) * 50% = 4095
-#define LEDC_FREQUENCY          (10000) // Frequency in Hertz. Set frequency at 5 kHz
+#define LEDC_DUTY_RES           LEDC_TIMER_4_BIT // Set duty resolution to 13 bits
+#define LEDC_DUTY               (1) // Set duty to 50%. ((2 ** 13) - 1) * 50% = 4095
+#define LEDC_FREQUENCY          (1000000) // Frequency in Hertz. Set frequency at 5 kHz
 
 #if CONFIG_EXAMPLE_POWER_SAVE_MIN_MODEM
 #define DEFAULT_PS_MODE WIFI_PS_MIN_MODEM
@@ -49,10 +53,16 @@
 ---------------------------------------------------------------*/
 //ADC1 Channel
 #define EXAMPLE_ADC1_CHAN0          ADC_CHANNEL_2
-
 #define EXAMPLE_ADC_ATTEN           ADC_ATTEN_DB_0
+#define _EXAMPLE_ADC_UNIT_STR(unit)         #unit
+#define EXAMPLE_ADC_UNIT_STR(unit)          _EXAMPLE_ADC_UNIT_STR(unit)
+#define EXAMPLE_ADC_GET_CHANNEL(p_data)     ((p_data)->type2.channel)
+#define EXAMPLE_ADC_GET_DATA(p_data)        ((p_data)->type2.data)
 
 #define MAC_LENGTH 18
+
+#define SAMPLE_AMOUNT 5
+#define SKIP_AMOUNT 25
 
 const static char *TAG = "ADC";
 
@@ -65,10 +75,7 @@ typedef struct MyMessageType {
 };
 struct MyMessageType message_to_send;
 
-static int adc_raw[2][10];
-static int voltage[2][10];
-static bool example_adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_handle_t *out_handle);
-
+static int adc_raw[SAMPLE_AMOUNT];
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF,0xFF,0xFF,0xFF,0xFF};
 uint8_t peerAddress[] = {0x40, 0x4C, 0xCA, 0x41, 0x16, 0xBC};
@@ -173,7 +180,26 @@ void mac_unparse(const uint8_t mac_address[6], char *mac_str)
     snprintf(mac_str, MAC_LENGTH, "%02X-%02X-%02X-%02X-%02X-%02X", mac_address[0],mac_address[1],mac_address[2],mac_address[3],mac_address[4],mac_address[5]);
 }
 
-void do_loop()
+#if CONFIG_CONTINUOUS
+static TaskHandle_t s_task_handle;
+
+static bool IRAM_ATTR s_conv_done_cb(adc_continuous_handle_t handle, const adc_continuous_evt_data_t *edata, void *user_data)
+{
+    BaseType_t mustYield = pdFALSE;
+    //Notify that ADC continuous driver has done enough number of conversions
+    vTaskNotifyGiveFromISR(s_task_handle, &mustYield);
+
+    return (mustYield == pdTRUE);
+}
+#endif
+
+
+#if CONFIG_ONESHOT
+adc_oneshot_unit_handle_t
+#elif CONFIG_CONTINUOUS
+adc_continuous_handle_t
+#endif
+init_adc()
 {
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
@@ -182,6 +208,7 @@ void do_loop()
         ret = nvs_flash_init();
     }
     
+#if CONFIG_ONESHOT
     //-------------ADC1 Init---------------//
     adc_oneshot_unit_handle_t adc1_handle;
     adc_oneshot_unit_init_cfg_t init_config1 = {
@@ -195,6 +222,38 @@ void do_loop()
         .atten = EXAMPLE_ADC_ATTEN,
     };
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, EXAMPLE_ADC1_CHAN0, &config));
+#elif CONFIG_CONTINUOUS
+    //-------------ADC1 Init---------------//
+    adc_continuous_handle_t adc1_handle;
+    adc_continuous_handle_cfg_t adc_config = {
+        .max_store_buf_size = 1024,
+        .conv_frame_size = 100,
+    };
+    ESP_ERROR_CHECK(adc_continuous_new_handle(&adc_config, &adc1_handle));
+
+    //-------------ADC1 Config---------------//
+    adc_continuous_config_t dig_cfg = {
+        .sample_freq_hz = 611,
+        .conv_mode = ADC_CONV_SINGLE_UNIT_1,
+        .format = ADC_DIGI_OUTPUT_FORMAT_TYPE2,
+    };
+
+    adc_digi_pattern_config_t adc_pattern[1] = {0};
+    dig_cfg.pattern_num = 1;
+    adc_pattern[0].atten = EXAMPLE_ADC_ATTEN;
+    adc_pattern[0].channel = EXAMPLE_ADC1_CHAN0;
+    adc_pattern[0].unit = ADC_UNIT_1;
+    adc_pattern[0].bit_width = SOC_ADC_DIGI_MAX_BITWIDTH;
+    dig_cfg.adc_pattern = adc_pattern;
+    ESP_ERROR_CHECK(adc_continuous_config(adc1_handle, &dig_cfg));
+
+    //-------------ADC1 Start---------------//
+     adc_continuous_evt_cbs_t cbs = {
+        .on_conv_done = s_conv_done_cb,
+    };
+    ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(adc1_handle, &cbs, NULL));
+    ESP_ERROR_CHECK(adc_continuous_start(adc1_handle));
+#endif
 
     // Prepare and then apply the LEDC PWM timer configuration
     ledc_timer_config_t ledc_timer = {
@@ -223,9 +282,73 @@ void do_loop()
     // Update duty to apply the new value
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
 
+    return adc1_handle;
+}
+
+int compare (const void * a, const void * b)
+{
+  return ( *(int*)a - *(int*)b );
+}
+
+
+void do_loop(
+#if CONFIG_ONESHOT
+    adc_oneshot_unit_handle_t
+#elif CONFIG_CONTINUOUS
+    adc_continuous_handle_t
+#endif
+    adc_handle)
+{
     printf("LOG:ADC_READ\n");
-    ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[0][0]));
-    ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[0][0]);
+    int adc_median;
+    int trash;
+#if CONFIG_ONESHOT
+    // vTaskDelay(1000 / portTICK_PERIOD_MS);
+    
+    for (int i = 0; i < SKIP_AMOUNT; i += 1) {
+        ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, EXAMPLE_ADC1_CHAN0, &trash));
+        ESP_LOGI(TAG, "TRASHING: ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, trash);
+    }
+    for (int i = 0; i < SAMPLE_AMOUNT; i += 1) {
+        ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, EXAMPLE_ADC1_CHAN0, &adc_raw[i]));
+        ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_raw[i]);
+    }
+    qsort(adc_raw, SAMPLE_AMOUNT, sizeof(int), compare);
+    adc_median = adc_raw[SAMPLE_AMOUNT/2];
+#elif CONFIG_CONTINUOUS
+    esp_err_t ret;
+    uint32_t ret_num = 0;
+    uint8_t result[256] = {0};
+    memset(result, 0xcc, 256);
+
+    char unit[] = EXAMPLE_ADC_UNIT_STR(ADC_UNIT_1);
+
+    ret = adc_continuous_read(adc_handle, result, 256, &ret_num, 10);
+
+    if (ret == ESP_OK) {
+        ESP_LOGI("ADC", "ret is %x, ret_num is %"PRIu32" bytes", ret, ret_num);
+        for (int i = 0; i < ret_num; i += SOC_ADC_DIGI_RESULT_BYTES) {
+            adc_digi_output_data_t *p = (adc_digi_output_data_t*)&result[i];
+            uint32_t chan_num = EXAMPLE_ADC_GET_CHANNEL(p);
+            uint32_t data = EXAMPLE_ADC_GET_DATA(p);
+            /* Check the channel number validation, the data is invalid if the channel num exceed the maximum channel */
+            if (chan_num < SOC_ADC_CHANNEL_NUM(EXAMPLE_ADC_UNIT)) {
+                ESP_LOGI(TAG, "Unit: %s, Channel: %"PRIu32", Value: %"PRIx32, unit, chan_num, data);
+            } else {
+                ESP_LOGW(TAG, "Invalid data [%s_%"PRIu32"_%"PRIx32"]", unit, chan_num, data);
+            }
+        }
+        /**
+         * Because printing is slow, so every time you call `ulTaskNotifyTake`, it will immediately return.
+         * To avoid a task watchdog timeout, add a delay here. When you replace the way you process the data,
+         * usually you don't need this delay (as this task will block for a while).
+         */
+        vTaskDelay(1);
+    } else {
+        ESP_LOGE("ADC", "read not ok: %s", esp_err_to_name(ret));
+    }
+#endif
+    ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_median);
     
     // Start WiFi now since WiFi and ADC are not able to run simultaneously!
     printf("LOG:WIFI_INIT\n");
@@ -254,8 +377,8 @@ void do_loop()
     printf("LOG:READY\n");
     printf("READY\n");
 
-    printf("ADC_VALUE:%d;%s;%s\n", adc_raw[0][0], uuid_str, mac_str);
-    send_message(adc_raw[0][0], uuid_str, mac_str);
+    printf("ADC_VALUE:%d;%s;%s\n", adc_median, uuid_str, mac_str);
+    send_message(adc_median, uuid_str, mac_str);
 
     // deinit wifi to properly read ADC next time
     esp_wifi_stop();
@@ -281,14 +404,26 @@ void app_main()
         esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
         printf("Setup ESP32 to sleep for every %d Seconds\n", TIME_TO_SLEEP);
 
-        do_loop();
+#if CONFIG_ONESHOT
+        adc_oneshot_unit_handle_t adc_handle = init_adc();
+#elif CONFIG_CONTINUOUS
+        s_task_handle = xTaskGetCurrentTaskHandle();
+        adc_continuous_handle_t adc_handle = init_adc();
+#endif
+        do_loop(adc_handle);
 
         printf("Going to sleep now\n");
         fflush(stdout);
         esp_deep_sleep_start();
     #else
+#if CONFIG_ONESHOT
+        adc_oneshot_unit_handle_t adc_handle = init_adc();
+#elif CONFIG_CONTINUOUS
+        s_task_handle = xTaskGetCurrentTaskHandle();
+        adc_continuous_handle_t adc_handle = init_adc();
+#endif
         while(true) {
-            do_loop();
+            do_loop(adc_handle);
             // wait for 10 seconds and send data again
             vTaskDelay(10 * 1000 / portTICK_PERIOD_MS);
         }

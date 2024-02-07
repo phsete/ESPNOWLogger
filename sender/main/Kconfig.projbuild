@@ -12,6 +12,18 @@ menu "Example Configuration"
             bool "Softap"
     endchoice
 
+    choice ADC_MODE
+        prompt "adc mode"
+        default ONESHOT
+        help
+            Select ADC Mode for ESP32.
+
+        config ONESHOT
+            bool "oneshot"
+        config CONTINUOUS
+            bool "continuous"
+    endchoice
+
     choice EXAMPLE_POWER_SAVE_MODE
         prompt "power save mode"
         default EXAMPLE_POWER_SAVE_MIN_MODEM

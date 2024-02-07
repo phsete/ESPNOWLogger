@@ -15,7 +15,12 @@
         "ratio": "c",
         "array": "c",
         "tuple": "c",
-        "utility": "c"
+        "utility": "c",
+        "adc_oneshot.h": "c",
+        "adc_continuous.h": "c",
+        "adc_periph.h": "c",
+        "adc.h": "c",
+        "rtc_io.h": "c"
     },
     "idf.portWin": "COM6",
     "idf.flashType": "UART",
