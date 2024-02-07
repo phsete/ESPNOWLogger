@@ -50,14 +50,14 @@ jobs:
     - name: esp-idf build sender
       uses: espressif/esp-idf-ci-action@v1
       with:
-        esp_idf_version: v5.1.1
+        esp_idf_version: v5.1.2
         target: esp32c6
         path: './sender/'
     - name: esp-idf build receiver
       if: ${{ matrix.SLEEP_MODE =='NO_SLEEP' && matrix.EXAMPLE_POWER_SAVE_MODE == 'EXAMPLE_POWER_SAVE_NONE' }}
       uses: espressif/esp-idf-ci-action@v1
       with:
-        esp_idf_version: v5.1.1
+        esp_idf_version: v5.1.2
         target: esp32c6
         path: './receiver/'
     - name: find release if exists
