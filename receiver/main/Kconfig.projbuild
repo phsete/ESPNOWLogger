@@ -18,46 +18,6 @@ menu "Example Configuration"
             bool "Softap"
     endchoice
 
-    choice EXAMPLE_POWER_SAVE_MODE
-        prompt "power save mode"
-        default EXAMPLE_POWER_SAVE_MIN_MODEM
-        help
-            Power save mode for the esp32 to use. Modem sleep mode includes minimum and maximum power save modes.
-            In minimum power save mode, station wakes up every DTIM to receive beacon. Broadcast data will not be
-            lost because it is transmitted after DTIM. However, it can not save much more power if DTIM is short
-            for DTIM is determined by AP.
-            In maximum power save mode, station wakes up every listen interval to receive beacon. Broadcast data
-            may be lost because station may be in sleep state at DTIM time. If listen interval is longer, more power
-            is saved but broadcast data is more easy to lose.
-
-        config EXAMPLE_POWER_SAVE_NONE
-            bool "none"
-        config EXAMPLE_POWER_SAVE_MIN_MODEM
-            bool "minimum modem"
-        config EXAMPLE_POWER_SAVE_MAX_MODEM
-            bool "maximum modem"
-    endchoice
-
-    choice SLEEP_MODE
-        prompt "sleep mode"
-        default NO_SLEEP
-        help
-            Select Sleep Mode for ESP32.
-
-        config NO_SLEEP
-            bool "no sleep"
-        config DEEP_SLEEP
-            bool "deep sleep"
-    endchoice
-
-    config SLEEP_TIME
-        int "Sleep Time"
-        default 10
-        range 0 1000
-        depends on DEEP_SLEEP
-        help
-            Time Time to sleep [in Seconds]
-
     config ESP_LOGGER_VERSION
         string "Installed  ESP Logger Version"
         default "not set"
