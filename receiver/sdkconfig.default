@@ -468,7 +468,7 @@ CONFIG_PARTITION_TABLE_MD5=y
 #
 # Example Configuration
 #
-CONFIG_BROKER_URI="ws://mqtt.eclipseprojects.io:80/mqtt"
+CONFIG_BROKER_URI="mqtt://raspberrypi2.local"
 CONFIG_ESPNOW_WIFI_MODE_STATION=y
 # CONFIG_ESPNOW_WIFI_MODE_STATION_SOFTAP is not set
 CONFIG_WIFI_SSID="BIG_PT_WLAN_GUEST"
