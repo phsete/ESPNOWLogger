@@ -4,6 +4,3 @@
 [submodule "receiver/components/uuid"]
 	path = receiver/components/uuid
 	url = git@github.com:phsete/esp32-uuid.git
-[submodule "esp-matter"] 
-   path = esp-matter 
-   url = git://url-of-submodule-repo/
