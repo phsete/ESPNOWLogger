@@ -39,8 +39,6 @@ jobs:
         sed -i '/CONFIG_EXAMPLE_POWER_SAVE_NONE=y/d' ./sender/sdkconfig
         sed -i '/CONFIG_ESP_LOGGER_VERSION="not set"/d' ./sender/sdkconfig
         cp ./receiver/sdkconfig.default ./receiver/sdkconfig
-        sed -i '/CONFIG_NO_SLEEP=y/d' ./receiver/sdkconfig
-        sed -i '/CONFIG_EXAMPLE_POWER_SAVE_NONE=y/d' ./receiver/sdkconfig
         sed -i '/CONFIG_ESP_LOGGER_VERSION="not set"/d' ./receiver/sdkconfig
     - name: Configure sdkconfig for different options
       run: |
@@ -48,9 +46,6 @@ jobs:
         echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" >> ./sender/sdkconfig
         ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" >> ./sender/sdkconfig', matrix.SLEEP_TIME) }}
         echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' >> ./sender/sdkconfig
-        echo "CONFIG_${{ matrix.SLEEP_MODE }}=y" >> ./receiver/sdkconfig
-        echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" >> ./receiver/sdkconfig
-        ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" >> ./receiver/sdkconfig', matrix.SLEEP_TIME) }}
         echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' >> ./receiver/sdkconfig
     - name: esp-idf build sender
       uses: espressif/esp-idf-ci-action@v1
@@ -59,6 +54,7 @@ jobs:
         target: esp32c6
         path: './sender/'
     - name: esp-idf build receiver
+      if: ${{ matrix.SLEEP_MODE == NO_SLEEP && matrix.EXAMPLE_POWER_SAVE_MODE == EXAMPLE_POWER_SAVE_NONE }}
       uses: espressif/esp-idf-ci-action@v1
       with:
         esp_idf_version: v5.1.1
@@ -92,15 +88,17 @@ jobs:
         asset_name: sender-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
         asset_content_type: application/octet-stream
     - name: upload linux artifact receiver
+      if: ${{ matrix.SLEEP_MODE == NO_SLEEP && matrix.EXAMPLE_POWER_SAVE_MODE == EXAMPLE_POWER_SAVE_NONE }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         upload_url: ${{ steps.get_release.outputs.id && steps.get_release.outputs.upload_url || steps.create_release.outputs.upload_url }}
         asset_path: ./receiver/build/ESPNOWLogger.bin
-        asset_name: receiver-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}.bin
+        asset_name: receiver.bin
         asset_content_type: application/octet-stream
     - name: upload receiver sdkconfig
+      if: ${{ matrix.SLEEP_MODE == NO_SLEEP && matrix.EXAMPLE_POWER_SAVE_MODE == EXAMPLE_POWER_SAVE_NONE }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
