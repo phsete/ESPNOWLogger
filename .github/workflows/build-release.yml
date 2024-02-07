@@ -46,7 +46,7 @@ jobs:
         echo "CONFIG_${{ matrix.EXAMPLE_POWER_SAVE_MODE }}=y" >> ./sender/sdkconfig
         ${{ matrix.SLEEP_TIME && format('echo "CONFIG_SLEEP_TIME={0}" >> ./sender/sdkconfig', matrix.SLEEP_TIME) }}
         echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' >> ./sender/sdkconfig
-        echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}"' >> ./receiver/sdkconfig
+        echo 'CONFIG_ESP_LOGGER_VERSION="${{ env.TAG }}-${{ env.SHA }}"' >> ./receiver/sdkconfig
     - name: esp-idf build sender
       uses: espressif/esp-idf-ci-action@v1
       with:
