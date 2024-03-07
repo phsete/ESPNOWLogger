@@ -111,7 +111,7 @@ jobs:
       with:
         upload_url: ${{ steps.get_release.outputs.id && steps.get_release.outputs.upload_url || steps.create_release.outputs.upload_url }}
         asset_path: ./receiver/sdkconfig
-        asset_name: receiver-sdkconfig-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}
+        asset_name: receiver-sdkconfig-${{ matrix.PROTOCOL }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}
         asset_content_type: application/octet-stream
     - name: upload sender sdkconfig
       uses: actions/upload-release-asset@v1
@@ -120,5 +120,5 @@ jobs:
       with:
         upload_url: ${{ steps.get_release.outputs.id && steps.get_release.outputs.upload_url || steps.create_release.outputs.upload_url }}
         asset_path: ./sender/sdkconfig
-        asset_name: sender-sdkconfig-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}
+        asset_name: sender-sdkconfig-${{ matrix.PROTOCOL }}-${{ matrix.SLEEP_MODE }}-${{ matrix.EXAMPLE_POWER_SAVE_MODE }}
         asset_content_type: application/octet-stream
