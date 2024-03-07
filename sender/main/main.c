@@ -302,6 +302,7 @@ int compare (const void * a, const void * b)
   return ( *(int*)a - *(int*)b );
 }
 
+#if CONFIG_WIFI
 /**
  * from https://medium.com/@fatehsali517/how-to-connect-esp32-to-wifi-using-esp-idf-iot-development-framework-d798dc89f0d6
 */
@@ -426,6 +427,7 @@ static void mqtt_app_start(void)
 
     mqtt_ready = true;
 }
+#endif
 
 
 
