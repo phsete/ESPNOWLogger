@@ -56,6 +56,41 @@ menu "Example Configuration"
             bool "deep sleep"
     endchoice
 
+    choice PROTOCOL_UNDER_TEST
+        prompt "used protocol to transmit sensor data"
+        default ESP_NOW
+        help
+            Select used protocol to transmit sensor data for ESP32.
+
+        config ESP_NOW
+            bool "ESP-NOW"
+        config WIFI
+            bool "WiFi"
+        config BT
+            bool "Bluetooth"
+    endchoice
+
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "not set"
+        depends on WIFI
+        help
+            WiFi SSID to connect to
+
+    config WIFI_PASSWORD
+        string "WiFi Password"
+        default "not set"
+        depends on WIFI
+        help
+            WiFi Password to connect to specified network
+
+    config BROKER_URI
+        string "Broker URL"
+        default "ws://mqtt.eclipseprojects.io:80/mqtt"
+        depends on WIFI
+        help
+            URL of an mqtt broker which this example connects to.
+
     config SLEEP_TIME
         int "Sleep Time"
         default 10

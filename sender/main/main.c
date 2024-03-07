@@ -26,6 +26,7 @@
 #include "main.h"
 #include "uuid.h"
 #include <esp_sleep.h>
+#include "mqtt_client.h"
 
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
@@ -82,7 +83,18 @@ uint8_t peerAddress[] = {0x40, 0x4C, 0xCA, 0x41, 0x16, 0xBC};
 esp_now_peer_info_t peerInfo;
 bool wifi_ready = false;
 bool espnow_ready = false;
+bool mqtt_ready = false;
 bool button_pressed = false;
+
+esp_mqtt_client_handle_t mqtt_client;
+int retry_num=0;
+
+static void log_error_if_nonzero(const char *message, int error_code)
+{
+    if (error_code != 0) {
+        ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
+    }
+}
 
 // Should be used when multiple types of data are sent
 // typedef struct struct_message {
@@ -290,6 +302,132 @@ int compare (const void * a, const void * b)
   return ( *(int*)a - *(int*)b );
 }
 
+/**
+ * from https://medium.com/@fatehsali517/how-to-connect-esp32-to-wifi-using-esp-idf-iot-development-framework-d798dc89f0d6
+*/
+static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id,void *event_data){
+    if(event_id == WIFI_EVENT_STA_START)
+    {
+    printf("WIFI CONNECTING....\n");
+    }
+    else if (event_id == WIFI_EVENT_STA_CONNECTED)
+    {
+    printf("WiFi CONNECTED\n");
+    }
+    else if (event_id == WIFI_EVENT_STA_DISCONNECTED)
+    {
+    printf("WiFi lost connection\n");
+    if(retry_num<5){esp_wifi_connect();retry_num++;printf("Retrying to Connect...\n");}
+    }
+    else if (event_id == IP_EVENT_STA_GOT_IP)
+    {
+    printf("Wifi got IP...\n\n");
+    }
+}
+
+/**
+ * from https://medium.com/@fatehsali517/how-to-connect-esp32-to-wifi-using-esp-idf-iot-development-framework-d798dc89f0d6
+*/
+void wifi_connection()
+{
+    esp_netif_init(); //network interdace initialization
+    esp_event_loop_create_default(); //responsible for handling and dispatching events
+    esp_netif_create_default_wifi_sta(); //sets up necessary data structs for wifi station interface
+    wifi_init_config_t wifi_initiation = WIFI_INIT_CONFIG_DEFAULT();//sets up wifi wifi_init_config struct with default values
+    esp_wifi_init(&wifi_initiation); //wifi initialised with dafault wifi_initiation
+    esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);//creating event handler register for wifi
+    esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL);//creating event handler register for ip event
+    wifi_config_t wifi_configuration ={ //struct wifi_config_t var wifi_configuration
+    .sta= {
+        .ssid = "",
+        .password= "", /*we are sending a const char of ssid and password which we will strcpy in following line so leaving it blank*/ 
+    }//also this part is used if you donot want to use Kconfig.projbuild
+    };
+    strcpy((char*)wifi_configuration.sta.ssid, CONFIG_WIFI_SSID); // copy chars from hardcoded configs to struct
+    strcpy((char*)wifi_configuration.sta.password,CONFIG_WIFI_PASSWORD);
+    esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);//setting up configs when event ESP_IF_WIFI_STA
+    esp_wifi_set_channel(CONFIG_ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE);
+    esp_wifi_set_ps(DEFAULT_PS_MODE);
+    esp_wifi_set_mode(WIFI_MODE_STA);//station mode selected
+    esp_wifi_start();//start connection with configurations provided in funtion
+    esp_wifi_connect(); //connect with saved ssid and pass
+    printf( "wifi_init_softap finished. SSID:%s", CONFIG_WIFI_SSID);
+
+    wifi_ready = true;
+}
+
+/*
+ * @brief Event handler registered to receive MQTT events (from https://github.com/espressif/esp-idf/blob/a5b261f699808efdacd287adbded5b718dffd14e/examples/protocols/mqtt/ws/main/app_main.c)
+ *
+ *  This function is called by the MQTT client event loop.
+ *
+ * @param handler_args user data registered to the event.
+ * @param base Event base for the handler(always MQTT Base in this example).
+ * @param event_id The id for the received event.
+ * @param event_data The data for the event, esp_mqtt_event_handle_t.
+ */
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
+{
+    ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%" PRIi32, base, event_id);
+    esp_mqtt_event_handle_t event = event_data;
+    esp_mqtt_client_handle_t client = event->client;
+    int msg_id;
+    switch ((esp_mqtt_event_id_t)event_id) {
+    case MQTT_EVENT_CONNECTED:
+        ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+        break;
+    case MQTT_EVENT_DISCONNECTED:
+        ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+        break;
+
+    case MQTT_EVENT_SUBSCRIBED:
+        ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
+        break;
+    case MQTT_EVENT_UNSUBSCRIBED:
+        ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+        break;
+    case MQTT_EVENT_PUBLISHED:
+        ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+        break;
+    case MQTT_EVENT_DATA:
+        ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+        printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
+        printf("DATA=%.*s\r\n", event->data_len, event->data);
+        break;
+    case MQTT_EVENT_ERROR:
+        ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+        if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
+            log_error_if_nonzero("reported from esp-tls", event->error_handle->esp_tls_last_esp_err);
+            log_error_if_nonzero("reported from tls stack", event->error_handle->esp_tls_stack_err);
+            log_error_if_nonzero("captured as transport's socket errno",  event->error_handle->esp_transport_sock_errno);
+            ESP_LOGI(TAG, "Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
+
+        }
+        break;
+    default:
+        ESP_LOGI(TAG, "Other event id:%d", event->event_id);
+        break;
+    }
+}
+
+/**
+ * from https://github.com/espressif/esp-idf/blob/a5b261f699808efdacd287adbded5b718dffd14e/examples/protocols/mqtt/ws/main/app_main.c
+*/
+static void mqtt_app_start(void)
+{
+    const esp_mqtt_client_config_t mqtt_cfg = {
+        .broker.address.uri = CONFIG_BROKER_URI,
+    };
+
+    mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
+    /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
+    esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
+    esp_mqtt_client_start(mqtt_client);
+
+    mqtt_ready = true;
+}
+
+
 
 void do_loop(
 #if CONFIG_ONESHOT
@@ -350,6 +488,7 @@ void do_loop(
 #endif
     ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, adc_median);
     
+#if CONFIG_ESP_NOW
     // Start WiFi now since WiFi and ADC are not able to run simultaneously!
     printf("LOG:WIFI_INIT\n");
     example_wifi_init();
@@ -383,6 +522,31 @@ void do_loop(
     // deinit wifi to properly read ADC next time
     esp_wifi_stop();
     esp_wifi_deinit();    
+#elif CONFIG_WIFI
+    printf("LOG:WIFI_INIT\n");
+    wifi_connection();
+    printf("LOG:MQTT_INIT\n");
+    mqtt_app_start();
+
+    printf("Hello:sender:%s\n", CONFIG_ESP_LOGGER_VERSION);
+    
+    printf("LOG:WAIT_FOR_WIFI_AND_MQTT_READY\n");
+    while(!wifi_ready || !mqtt_ready) {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+
+    printf("LOG:READY\n");
+    printf("READY\n");
+
+    printf("ADC_VALUE:%d\n", adc_median);
+    char value_str[5];
+    sprintf(value_str, "%d", adc_median);
+    esp_mqtt_client_publish(mqtt_client, "/soilmoisture", value_str, 0, 0, 0);
+
+    // deinit wifi to properly read ADC next time
+    esp_wifi_stop();
+    esp_wifi_deinit();  
+#endif
 }
 
 void app_main()

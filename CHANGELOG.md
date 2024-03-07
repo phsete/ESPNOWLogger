@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.2.7
+
+Features:
+
+  - add wifi protocol (over mqtt)
+
 ## 0.2.6
 
 Features:
