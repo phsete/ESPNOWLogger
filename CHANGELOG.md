@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 0.2.8
+
+Features:
+
+  - fix crash in WiFi Mode
+
 ## 0.2.7
 
 Features:
