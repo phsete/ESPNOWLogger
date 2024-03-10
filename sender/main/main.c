@@ -89,6 +89,8 @@ bool button_pressed = false;
 esp_mqtt_client_handle_t mqtt_client;
 int retry_num=0;
 
+esp_netif_t * my_sta;
+
 static void log_error_if_nonzero(const char *message, int error_code)
 {
     if (error_code != 0) {
@@ -333,7 +335,7 @@ void wifi_connection()
 {
     esp_netif_init(); //network interdace initialization
     esp_event_loop_create_default(); //responsible for handling and dispatching events
-    esp_netif_create_default_wifi_sta(); //sets up necessary data structs for wifi station interface
+    my_sta = esp_netif_create_default_wifi_sta(); //sets up necessary data structs for wifi station interface
     wifi_init_config_t wifi_initiation = WIFI_INIT_CONFIG_DEFAULT();//sets up wifi wifi_init_config struct with default values
     esp_wifi_init(&wifi_initiation); //wifi initialised with dafault wifi_initiation
     esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);//creating event handler register for wifi
@@ -548,6 +550,7 @@ void do_loop(
     // deinit wifi to properly read ADC next time
     esp_wifi_stop();
     esp_wifi_deinit();  
+    esp_netif_destroy(my_sta);
 #endif
 }
 
